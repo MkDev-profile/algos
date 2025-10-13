@@ -9,7 +9,7 @@ import (
 )
 
 func lengthOfLongestSubstring(s string) int {
-
+ 
 	// Stores last occurrence index of each character
 	// чтобы проверять был ли уже currentChar в current substring-e (и заодно чтобы эта проверка была быстрой поэтому используется map (т.е. hash таблица))
     charIndex := make(map[byte]int) 
