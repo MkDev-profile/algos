@@ -7,10 +7,10 @@ import (
 
 type CircularQueue[T any] struct {
 	items    []T
-	front    int
-	rear     int
-	size     int
-	capacity int
+	startIdx    int
+	endIdx     int
+	len     int
+	cap int
 }
 
 func NewCircularQueue[T any](capacity int) *CircularQueue[T] {
@@ -20,93 +20,88 @@ func NewCircularQueue[T any](capacity int) *CircularQueue[T] {
 
 	return &CircularQueue[T]{
 		items:    make([]T, capacity),
-		front:    0,
-		rear:     0,
-		size:     0,
-		capacity: capacity,
+		startIdx:    0,
+		endIdx:     -1,
+		len:     0,
+		cap: capacity,
 	}
 }
 
 func (q *CircularQueue[T]) Enqueue(item T) error {
-	if q.IsFull() {
+	if q.len == q.cap {
 		return errors.New("queue is full")
 	}
 
-	q.items[q.rear] = item
-	q.rear = (q.rear + 1) % q.capacity
-	q.size++
+	endIdx := (q.endIdx + 1) % q.cap
+	q.items[endIdx] = item
+	q.endIdx = endIdx
+	q.len++
 	return nil
 }
 
 func (q *CircularQueue[T]) Dequeue() (T, error) {
 	var zero T
-	if q.IsEmpty() {
+	if q.len == 0 {
 		return zero, errors.New("queue is empty")
 	}
 
-	item := q.items[q.front]
-	q.front = (q.front + 1) % q.capacity
-	q.size--
+	item := q.items[q.startIdx]
+	q.startIdx = (q.startIdx + 1) % q.cap
+	q.len--
 	return item, nil
 }
 
 func (q *CircularQueue[T]) Peek() (T, error) {
 	var zero T
-	if q.IsEmpty() {
+	if q.len == 0 {
 		return zero, errors.New("queue is empty")
 	}
-	return q.items[q.front], nil
+	
+	return q.items[q.startIdx], nil
 }
 
 func (q *CircularQueue[T]) IsEmpty() bool {
-	return q.size == 0
+	return q.len == 0
 }
 
 func (q *CircularQueue[T]) IsFull() bool {
-	return q.size == q.capacity
+	return q.len == q.cap
 }
 
-func (q *CircularQueue[T]) Size() int {
-	return q.size
+func (q *CircularQueue[T]) Count() int {
+	return q.len
 }
 
 func Main_circular_queue() {
 	queue := NewCircularQueue[int](5)
 
-	// Enqueue all elements
-	for i := 0; i < 4; i++ {
-		queue.Enqueue(i)
-	}
-
-	fmt.Printf("After enqueue: %#v\n\n", queue)
-
-	// Dequeue several items
-	for i := 0; i < 3; i++ {
-		queue.Dequeue()
-	}
-
-    fmt.Printf("After dequeue: %#v\n\n", queue)
-
-	// Enqueue more elements
+	queue.Enqueue(1)
+	queue.Enqueue(2)
+	queue.Enqueue(3)
 	queue.Enqueue(4)
 
-	// wrapping around
-	queue.Enqueue(5) // insert to index = 0
-	queue.Enqueue(6) // insert to index = 1
+	fmt.Printf("%#+v\n", queue)
 
-    fmt.Printf("After wrapping: %#v\n\n", queue)
+	queue.Dequeue()
+	queue.Dequeue()
+
+	fmt.Printf("%#+v\n", queue)
+
+	// wrap-around
+	queue.Enqueue(5)
+	queue.Enqueue(6)
+	queue.Enqueue(7)
+
+	fmt.Printf("%#+v\n", queue)
 }
 
 /*
 
 output:
 
-$ go run .
-After enqueue: &main.CircularQueue[int]{items:[]int{0, 1, 2, 3, 0}, front:0, rear:4, size:4, capacity:5}
-
-After dequeue: &main.CircularQueue[int]{items:[]int{0, 1, 2, 3, 0}, front:3, rear:4, size:1, capacity:5}
-
-After wrapping: &main.CircularQueue[int]{items:[]int{5, 6, 2, 3, 4}, front:3, rear:2, size:4, capacity:5}
+&main.CircularQueue[int]{items:[]int{1, 2, 3, 4, 0}, startIdx:0, endIdx:3, len:4, cap:5}
+&main.CircularQueue[int]{items:[]int{1, 2, 3, 4, 0}, startIdx:2, endIdx:3, len:2, cap:5}
+&main.CircularQueue[int]{items:[]int{6, 7, 3, 4, 5}, startIdx:2, endIdx:1, len:5, cap:5}
 
 */
 
